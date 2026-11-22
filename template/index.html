@@ -1,142 +1,170 @@
 <!doctype html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>NoteClass</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
-<div id="app">
+  <div id="app">
 
-  <!-- Barra superior: botão da lateral esquerda, abas, botão da lateral direita -->
-  <header id="topbar">
-    <button class="icon-btn" id="tg-left" title="Barra lateral esquerda (Ctrl+B)"><i data-ic="panel-left"></i></button>
-    <div id="tabs"></div>
-    <button class="icon-btn" id="new-tab" title="Nova aba"><i data-ic="plus"></i></button>
-    <span class="spacer"></span>
-    <button class="icon-btn" id="tg-right" title="Barra lateral direita (Alt+B)"><i data-ic="panel-right"></i></button>
-  </header>
+    <!-- Barra superior: recolher painel esquerdo | abas | recolher painel direito -->
+    <header id="topbar">
+      <button class="icon-btn" id="toggle-left" data-icon="panel-left" title="Mostrar/ocultar painel esquerdo"></button>
+      <div id="tabs" role="tablist"></div>
+      <button class="icon-btn" id="toggle-right" data-icon="panel-right" title="Mostrar/ocultar sumário"></button>
+    </header>
 
-  <div id="body">
-    <!-- Faixa de ícones -->
-    <nav id="ribbon">
-      <button class="icon-btn" data-view="search" title="Buscar (Ctrl+K)"><i data-ic="search"></i></button>
-      <button class="icon-btn" data-view="files" title="Arquivos"><i data-ic="folder"></i></button>
-      <button class="icon-btn" data-view="tags" title="Tags"><i data-ic="tag"></i></button>
-      <button class="icon-btn" data-view="dates" title="Por data"><i data-ic="calendar"></i></button>
-    </nav>
+    <div id="workspace">
+      <!-- Faixa de ícones -->
+      <nav id="ribbon">
+        <button class="icon-btn active" data-view="files" data-icon="folder" title="Arquivos"></button>
+        <button class="icon-btn" data-view="search" data-icon="search" title="Busca (Ctrl+Shift+F)"></button>
+        <button class="icon-btn" data-view="tags" data-icon="tag" title="Tags"></button>
+        <button class="icon-btn" data-view="dates" data-icon="calendar" title="Por data"></button>
+      </nav>
 
-    <!-- Painel esquerdo -->
-    <aside id="left">
-      <div id="left-head">
-        <div id="head-files">
-          <button class="icon-btn" id="act-note" title="Nova anotação (Alt+N)"><i data-ic="square-pen"></i></button>
-          <button class="icon-btn" id="act-folder" title="Nova pasta"><i data-ic="folder-plus"></i></button>
+      <!-- Painel esquerdo -->
+      <aside id="left" class="panel">
+        <div class="panel-body">
+          <section id="view-files" class="view">
+            <div class="toolbar">
+              <button class="icon-btn" id="btn-new-note" data-icon="pen" title="Nova anotação (Alt+N)"></button>
+              <button class="icon-btn" id="btn-new-folder" data-icon="folder-plus" title="Nova pasta"></button>
+            </div>
+            <div id="tree"></div>
+          </section>
+
+          <section id="view-search" class="view" hidden>
+            <div class="search-box">
+              <input id="f-q" type="search" placeholder="Buscar no título e no texto…" autocomplete="off">
+              <div class="row2">
+                <label>De <input id="f-from" type="date"></label>
+                <label>Até <input id="f-to" type="date"></label>
+              </div>
+              <input id="f-tag" list="tag-list" placeholder="Filtrar por tag (Enter)" autocomplete="off">
+              <div id="f-chips" class="chips"></div>
+              <button class="link-btn" id="f-clear">Limpar filtros</button>
+            </div>
+            <div id="results"></div>
+          </section>
+
+          <section id="view-tags" class="view" hidden>
+            <div id="tag-view"></div>
+          </section>
+          <section id="view-dates" class="view" hidden>
+            <div id="date-view"></div>
+          </section>
         </div>
-        <div id="head-title" hidden></div>
-      </div>
 
-      <section class="view" id="view-files"><div id="tree"></div></section>
+        <footer class="vault">
+          <span class="vault-name"><span data-icon="vault"></span> Cofre 1</span>
+          <button class="icon-btn" id="btn-settings" data-icon="settings" title="Configurações"></button>
+        </footer>
+      </aside>
+      <div class="resizer" id="rz-left" title="Arraste para redimensionar (duplo clique restaura)"></div>
 
-      <section class="view" id="view-search" hidden>
-        <div class="search-box">
-          <input id="s-q" type="search" placeholder="Buscar texto, #tag ou tag:nome" autocomplete="off">
-          <div class="filters">
-            <select id="s-tag" title="Filtrar por tag"><option value="">Todas as tags</option></select>
-            <select id="s-by" title="Campo da data">
-              <option value="created">Criação</option>
-              <option value="updated">Edição</option>
-            </select>
-            <label>De <input id="s-from" type="date"></label>
-            <label>Até <input id="s-to" type="date"></label>
-            <button class="btn" id="s-clear">Limpar filtros</button>
+      <!-- Área central -->
+      <main id="main">
+        <div id="empty">
+          <p>Nenhum arquivo selecionado…</p>
+          <div class="empty-actions">
+            <button class="btn" id="empty-note">Criar anotação</button>
+            <button class="btn ghost" id="empty-folder">Criar pasta</button>
           </div>
-          <div id="s-count" class="muted"></div>
         </div>
-        <div id="s-results"></div>
-      </section>
 
-      <section class="view" id="view-tags" hidden><div id="tag-list"></div></section>
-
-      <section class="view" id="view-dates" hidden>
-        <div class="search-box">
-          <select id="d-by">
-            <option value="created">Agrupar por data de criação</option>
-            <option value="updated">Agrupar por data de edição</option>
-          </select>
+        <div id="note" hidden>
+          <div id="note-head">
+            <input id="title" placeholder="Título da anotação" autocomplete="off">
+            <div class="meta">
+              <label>Data da aula <input id="note-date" type="date"></label>
+              <label>Pasta <select id="note-folder"></select></label>
+              <div id="tags-box" class="chips editable">
+                <input id="tag-input" list="tag-list" placeholder="Adicionar tag…" autocomplete="off">
+              </div>
+            </div>
+          </div>
+          <div id="modebar">
+            <div class="seg" id="modes">
+              <button data-mode="edit">Editar</button>
+              <button data-mode="split">Dividir</button>
+              <button data-mode="read">Ler</button>
+            </div>
+            <button class="icon-btn" id="note-menu" data-icon="more" title="Mais opções"></button>
+          </div>
+          <div id="panes" class="mode-edit">
+            <textarea id="editor" spellcheck="true"
+              placeholder="Escreva em Markdown: # título, **negrito**, - lista, - [ ] tarefa…"></textarea>
+            <article id="preview"></article>
+          </div>
         </div>
-        <div id="d-results"></div>
-      </section>
+      </main>
 
-      <footer id="left-foot">
-        <div class="vault"><i data-ic="box"></i><span id="vault-name">Cofre 1</span></div>
-        <button class="icon-btn" id="open-settings" title="Configurações"><i data-ic="settings"></i></button>
-      </footer>
-    </aside>
+      <div class="resizer" id="rz-right" title="Arraste para redimensionar (duplo clique restaura)"></div>
 
-    <div class="resizer" id="rs-left" title="Arraste para redimensionar (duplo clique restaura)"></div>
-
-    <!-- Área principal -->
-    <main id="main">
-      <div id="main-bar">
-        <div id="crumb"></div>
-        <span id="save-state" class="muted"></span>
-        <button class="icon-btn" id="btn-mode" title="Editar / visualizar (Alt+E)" hidden></button>
-        <button class="icon-btn" id="btn-more" title="Mais opções"><i data-ic="more"></i></button>
-      </div>
-
-      <div id="empty">
-        <p>Nenhum arquivo selecionado...</p>
-        <button class="btn primary" id="empty-new">Criar anotação</button>
-      </div>
-
-      <article id="note" hidden>
-        <input id="title" placeholder="Título da anotação" autocomplete="off" spellcheck="false">
-        <div id="tagbar"></div>
-        <div id="meta" class="muted"></div>
-        <textarea id="editor" spellcheck="true" placeholder="Escreva em Markdown…&#10;&#10;# Título&#10;- lista&#10;**negrito**  *itálico*  `código`"></textarea>
-        <div id="preview" hidden></div>
-      </article>
-    </main>
-
-    <div class="resizer" id="rs-right" title="Arraste para redimensionar (duplo clique restaura)"></div>
-
-    <!-- Painel direito: Sumário -->
-    <aside id="right">
-      <div id="right-head"><i data-ic="list"></i><span>Sumário</span></div>
-      <div class="outline-filter"><i data-ic="search"></i><input id="o-filter" placeholder="Filtrar títulos" autocomplete="off"></div>
-      <div id="outline"></div>
-      <footer id="right-foot">
-        <span id="st-links"><i data-ic="link"></i>0 Links</span>
-        <span id="st-words"><i data-ic="pen"></i>0 Palavras</span>
-        <span id="st-chars">0 caracteres</span>
-        <span id="st-sync" title="Salvo"><i data-ic="check"></i></span>
-      </footer>
-    </aside>
+      <!-- Painel direito: sumário -->
+      <aside id="right" class="panel">
+        <div class="panel-body">
+          <div class="panel-title"><span data-icon="list"></span> Sumário</div>
+          <div class="outline-filter">
+            <span data-icon="search"></span>
+            <input id="outline-q" placeholder="Filtrar tópicos" autocomplete="off">
+          </div>
+          <nav id="outline"></nav>
+        </div>
+        <footer class="stats">
+          <span><span data-icon="link" data-size="12"></span> <b id="st-links">0</b> Links</span>
+          <span><span data-icon="pen" data-size="12"></span> <b id="st-words">0</b> Palavras</span>
+          <span><b id="st-chars">0</b> caracteres</span>
+          <span id="save-status" class="save">—</span>
+        </footer>
+      </aside>
+    </div>
   </div>
-</div>
 
-<div id="ctx" hidden></div>
-<div id="toast" hidden></div>
-<datalist id="taglist"></datalist>
-<dialog id="dlg"></dialog>
+  <datalist id="tag-list"></datalist>
+  <div id="ctx" hidden></div>
+  <div id="toast" role="status" hidden></div>
 
-<dialog id="settings">
-  <form method="dialog">
-    <h3>Configurações</h3>
-    <label class="field">Nome do cofre<input id="set-vault" autocomplete="off"></label>
-    <label class="field">Tamanho da fonte do editor
-      <select id="set-fs"><option>13</option><option>14</option><option>15</option><option>16</option><option>18</option><option>20</option></select>
-    </label>
-    <label class="field check"><input id="set-mono" type="checkbox"> Usar fonte monoespaçada no editor</label>
-    <label class="field check"><input id="set-preview" type="checkbox"> Abrir anotações em modo de visualização</label>
-    <div class="field">Backup<a class="btn" href="/api/export/vault">Exportar cofre (.zip de .md)</a></div>
-    <p class="muted shortcuts">Atalhos: Ctrl+S salvar · Alt+N nova anotação · Alt+E editar/visualizar · Ctrl+K buscar · Ctrl+B / Alt+B recolher laterais</p>
-    <div class="dlg-actions"><button class="btn primary" value="ok">Fechar</button></div>
-  </form>
-</dialog>
+  <dialog id="ask">
+    <form method="dialog">
+      <label id="ask-label" for="ask-input"></label>
+      <input id="ask-input" autocomplete="off">
+      <menu>
+        <button type="button" class="btn ghost" data-close>Cancelar</button>
+        <button value="ok" class="btn">Confirmar</button>
+      </menu>
+    </form>
+  </dialog>
 
-<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <dialog id="settings">
+    <h2>Cofre 1</h2>
+    <p>Tudo fica salvo no seu MySQL local.</p>
+    <button class="btn" id="export-all">Exportar tudo (.zip de Markdown)</button>
+    <h3>Atalhos</h3>
+    <dl class="keys">
+      <dt>Ctrl+S</dt>
+      <dd>Salvar agora</dd>
+      <dt>Alt+N</dt>
+      <dd>Nova anotação</dd>
+      <dt>Ctrl+Shift+F</dt>
+      <dd>Abrir busca</dd>
+      <dt>Ctrl+B / Ctrl+I</dt>
+      <dd>Negrito / itálico</dd>
+    </dl>
+    <menu><button class="btn ghost" data-close>Fechar</button></menu>
+  </dialog>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
+
 </html>
